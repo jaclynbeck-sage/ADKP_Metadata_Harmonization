@@ -1,0 +1,176 @@
+default:
+
+  upload_synID: "syn70781466" # Staging
+
+  # Study names and file IDs ---------------------------------------------------
+
+  studies:
+    diverse_cohorts:
+      name: "AMP-AD_DiverseCohorts"
+      files: "syn51757646.21"
+    mayo:
+      name: "MayoRNAseq"
+      files: "syn23277389.7"
+    mc_brad:
+      name: "MC-BrAD"
+      files: "syn51401700.2"
+    mc_snrna:
+      name: "MC_snRNA"
+      files: "syn31563038.1"
+    mcmps:
+      name: "MCMPS"
+      files: "syn25891193.1"
+    msbb:
+      name: "MSBB"
+      files: "syn6101474.10"
+    nps_ad:
+      name: "NPS-AD"
+      files:
+        metadata: "syn55251012.4"
+        neuropath: "syn55251003.1"
+    rosmap:
+      name: "ROSMAP"
+      files: "syn3191087.11"
+    sea_ad:
+      name: "SEA-AD"
+      files:
+        metadata: "syn31149116.8"
+        external_metadata: "https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx"
+    smib_ad:
+      name: "SMIB-AD"
+      files: "syn22432749.1"
+
+  # Standardized values for string columns -------------------------------------
+
+  columns:
+
+    ## Meta-information --------------------------------------------------------
+    # General variables that are used for multiple columns, plus a full list of
+    # required columns, some of which do not appear in this config.
+
+    missing: "missing or unknown"
+    required_columns:
+      ["individualID", "dataContributionGroup", "cohort", "sex", "race",
+       "isHispanic", "ageDeath", "PMI", "apoeGenotype", "apoe4Status",
+       "amyCerad", "amyAny", "amyThal", "amyA", "Braak", "bScore"]
+
+    ## Demographics ------------------------------------------------------------
+
+    sex:
+      female: "female"
+      male: "male"
+
+    ageDeath:
+      over90: "90+"
+
+    race:
+      Amer_Ind: "American Indian or Alaska Native"
+      Asian: "Asian"
+      Black: "Black or African American"
+      Pacif_Islander: "Hawaiian or Pacific Islander"
+      White: "White"
+      other: "Other"
+
+    isHispanic:
+      hisp_true: "True"
+      hisp_false: "False"
+
+    ## Pathology ---------------------------------------------------------------
+
+    apoeGenotype:
+      e2e2: "22"
+      e2e3: "23"
+      e2e4: "24"
+      e3e3: "33"
+      e3e4: "34"
+      e4e4: "44"
+
+    apoe4Status:
+      e4yes: "yes"
+      e4no: "no"
+
+    amyCerad:
+      none: "None/No AD/C0"
+      sparse: "Sparse/Possible/C1"
+      moderate: "Moderate/Probable/C2"
+      frequent: "Frequent/Definite/C3"
+
+    amyAny:
+      amyYes: "yes"
+      amyNo: "no"
+
+    amyThal:
+      none: "None"
+      phase1: "Phase 1"
+      phase2: "Phase 2"
+      phase3: "Phase 3"
+      phase4: "Phase 4"
+      phase5: "Phase 5"
+
+    amyA:
+      none: "None"
+      phase1_2: "Thal Phase 1 or 2"
+      phase3: "Thal Phase 3"
+      phase4_5: "Thal Phase 4 or 5"
+
+    Braak:
+      none: "None"
+      stage1: "Stage I"
+      stage2: "Stage II"
+      stage3: "Stage III"
+      stage4: "Stage IV"
+      stage5: "Stage V"
+      stage6: "Stage VI"
+
+    bScore:
+      none: "None"
+      stage1_2: "Low (Stage I-II)"
+      stage3_4: "Moderate (Stage III-IV)"
+      stage5_6: "High (Stage V-VI)"
+
+    ## Study information -------------------------------------------------------
+
+    dataContributionGroup:
+      allen_institute: "Allen Institute"
+      banner: "Banner Sun Health Research Institute"
+      broad: "Broad Institute"
+      columbia: "Columbia University"
+      emory: "Emory University"
+      harvard: "Harvard Brain Tissue Resource Center"
+      mayo: "Mayo Clinic"
+      mssm: "Mount Sinai School of Medicine"
+      nimh: "NIMH Human Brain Collection Core"
+      rush: "Rush Alzheimer's Disease Center"
+      stanley: "Stanley Medical Research Institute"
+      udall: "Udall Center of Excellence for Parkinson's Disease Research"
+      umiami: "University of Miami Brain Endowment Bank"
+      upitt: "University of Pittsburgh"
+
+    cohort:
+      banner: "Banner Sun Health Research Institute"
+      biggs: "Biggs Institute Brain Bank"
+      cambridge: "Cambridge Brain Bank"
+      clincor: "CLINCOR"
+      columbia: "Columbia ADRC"
+      efiga: "EFIGA"
+      emory: "Emory"
+      fbs: "FBS"
+      hbcc: "HBCC"
+      harvard: "HBTRC"
+      latc: "LATC"
+      map: "MAP"
+      mars: "MARS"
+      mayo: "Mayo Clinic"
+      msbb: "Mount Sinai Brain Bank"
+      nki: "NKI/NYUGSOM"
+      qsbb: "Queen Square Brain Bank"
+      ros: "ROS"
+      sea_ad: "SEA-AD"
+      smri: "SMRI"
+      ufl: "UFL"
+      udall: "Udall"
+      umiami: "UMBEB"
+      upenn: "UPenn"
+      upitt: "UPitt"
+      whicap: "WHICAP"
+      none: ""
