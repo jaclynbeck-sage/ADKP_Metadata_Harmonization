@@ -9,12 +9,18 @@
 
 library(purrr)
 library(synapser)
+library(dplyr)
+library(stringr)
+
+source("util_functions.R")
+source("harmonize_function.R")
 
 studies <- config::get("studies")
 spec <- config::get("columns")
 
-source("util_functions.R")
-source("harmonize_function.R")
+# TRUE will print column names of metadata + unique values for each dataset.
+# FALSE will only print the status of the harmonized metadata for each dataset.
+verbose <- FALSE
 
 synLogin()
 
@@ -24,24 +30,30 @@ df_list <- list()
 # MayoRNAseq -------------------------------------------------------------------
 
 mayo <- studies$mayo
-meta_file <- synapse_download(mayo$files, mayo$name)
+meta_file <- synapse_download(mayo$metadata_id, mayo$name)
 meta <- read.csv(meta_file$path)
 
-colnames(meta)
-
-print_qc(meta, spec,
-         column_renames = list(
-           PMI = "pmi",
-           isHispanic = "ethnicity",
-           amyCerad = "CERAD",
-           amyThal = "Thal"
-         )
-)
+if (verbose) {
+  cat("\n", mayo$name, "\n")
+  print(colnames(meta))
+  print_qc(meta, spec,
+           column_renames = list(
+             PMI = "pmi",
+             isHispanic = "ethnicity",
+             amyCerad = "CERAD",
+             amyThal = "Thal"
+           )
+  )
+}
 
 meta_new <- harmonize(mayo$name, meta, spec) |>
   mutate(filename = meta_file$name)
 
-print_qc(meta_new, spec)
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", mayo$name, "\n")
 validate_values(meta_new, spec)
 
 df_list[["MayoRNAseq"]] <- meta_new
@@ -50,23 +62,29 @@ df_list[["MayoRNAseq"]] <- meta_new
 # MSBB -------------------------------------------------------------------------
 
 msbb <- studies$msbb
-meta_file <- synapse_download(msbb$files, msbb$name)
+meta_file <- synapse_download(msbb$metadata_id, msbb$name)
 meta <- read.csv(meta_file$path)
 
-colnames(meta)
-
-print_qc(meta, spec,
-         column_renames = list(
-           PMI = "pmi",
-           isHispanic = "ethnicity",
-           amyCerad = "CERAD"
-         )
-)
+if (verbose) {
+  cat("\n", msbb$name, "\n")
+  print(colnames(meta))
+  print_qc(meta, spec,
+           column_renames = list(
+             PMI = "pmi",
+             isHispanic = "ethnicity",
+             amyCerad = "CERAD"
+           )
+  )
+}
 
 meta_new <- harmonize(msbb$name, meta, spec) |>
   mutate(filename = meta_file$name)
 
-print_qc(meta_new, spec)
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", msbb$name, "\n")
 validate_values(meta_new, spec)
 
 df_list[["MSBB"]] <- meta_new
@@ -75,27 +93,33 @@ df_list[["MSBB"]] <- meta_new
 # ROSMAP -----------------------------------------------------------------------
 
 rosmap <- studies$rosmap
-meta_file <- synapse_download(rosmap$files, rosmap$name)
+meta_file <- synapse_download(rosmap$metadata_id, rosmap$name)
 meta <- read.csv(meta_file$path)
 
-colnames(meta)
-
-print_qc(meta, spec,
-         column_renames = list(
-           ageDeath = "age_death",
-           PMI = "pmi",
-           sex = "msex",
-           isHispanic = "spanish",
-           apoeGenotype = "apoe_genotype",
-           Braak = "braaksc",
-           amyCerad = "ceradsc"
-         )
-)
+if (verbose) {
+  cat("\n", rosmap$name, "\n")
+  print(colnames(meta))
+  print_qc(meta, spec,
+           column_renames = list(
+             ageDeath = "age_death",
+             PMI = "pmi",
+             sex = "msex",
+             isHispanic = "spanish",
+             apoeGenotype = "apoe_genotype",
+             Braak = "braaksc",
+             amyCerad = "ceradsc"
+           )
+  )
+}
 
 meta_new <- harmonize(rosmap$name, meta, spec) |>
   mutate(filename = meta_file$name)
 
-print_qc(meta_new, spec)
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", rosmap$name, "\n")
 validate_values(meta_new, spec)
 
 df_list[["ROSMAP"]] <- meta_new
@@ -104,17 +128,23 @@ df_list[["ROSMAP"]] <- meta_new
 # Diverse Cohorts --------------------------------------------------------------
 
 diverse_cohorts <- studies$diverse_cohorts
-meta_file <- synapse_download(diverse_cohorts$files, diverse_cohorts$name)
+meta_file <- synapse_download(diverse_cohorts$metadata_id, diverse_cohorts$name)
 meta <- read.csv(meta_file$path)
 
-colnames(meta)
-
-print_qc(meta, spec)
+if (verbose) {
+  cat("\n", diverse_cohorts$name, "\n")
+  print(colnames(meta))
+  print_qc(meta, spec)
+}
 
 meta_new <- harmonize(diverse_cohorts$name, meta, spec) |>
   mutate(filename = meta_file$name)
 
-print_qc(meta_new, spec)
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", diverse_cohorts$name, "\n")
 validate_values(meta_new, spec)
 
 df_list[["Diverse_Cohorts"]] <- meta_new
@@ -123,28 +153,34 @@ df_list[["Diverse_Cohorts"]] <- meta_new
 # NPS-AD -----------------------------------------------------------------------
 
 nps <- studies$nps_ad
-meta_file <- synapse_download(nps$files$metadata, nps$name)
+meta_file <- synapse_download(nps$metadata_id, nps$name)
 meta <- read.csv(meta_file$path)
 
-neuro_file <- synapse_download(nps$files$neuropath, nps$name)
+neuro_file <- synapse_download(nps$extra_metadata, nps$name)
 neuropath <- read.csv(neuro_file$path) |>
   dplyr::rename(individualID = IndividualID)
 
-colnames(meta)
+if (verbose) {
+  cat("\n", nps$name, "\n")
+  print(colnames(meta))
+  print_qc(meta, spec)
 
-print_qc(meta, spec)
-
-print_qc(neuropath, spec,
-         column_renames = list(
-           amyCerad = "CERAD",
-           Braak = "BRAAK_AD"
-         )
-)
+  print_qc(neuropath, spec,
+           column_renames = list(
+             amyCerad = "CERAD",
+             Braak = "BRAAK_AD"
+           )
+  )
+}
 
 meta_new <- harmonize(nps$name, meta, spec, extra_metadata = neuropath) |>
   mutate(filename = meta_file$name)
 
-print_qc(meta_new, spec)
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", nps$name, "\n")
 validate_values(meta_new, spec) # Cohort will fail until after harmonization
 
 df_list[["NPS-AD"]] <- meta_new
@@ -158,7 +194,12 @@ meta_all <- meta_all |>
   fill_missing_ampad1.0_ids(spec) |> # For Diverse Cohorts
   updateADoutcome(spec) # For Diverse Cohorts
 
-print_qc(meta_all, spec)
+if (verbose) {
+  cat("\nAll studies (de-duplicated)\n")
+  print_qc(meta_all, spec)
+}
+
+cat("\nAll studies (de-duplicated)\n")
 validate_values(meta_all, spec)
 
 # Save de-duplicated data frame for step 2
@@ -182,11 +223,13 @@ new_files <- sapply(df_list, function(meta_old) {
   )
 
   # Sorting for this data set gets changed during fill_missing_ampad1.0_ids() so
-  # we sort it back. Also fill in missing "race" values with "geneticAncestry"
-  # values.
+  # we sort it back.
   if (unique(meta_new$study) == "NPS-AD") {
     meta_new <- arrange(meta_new, individualID)
   }
+
+  # Now remove the study variable since it's no longer needed
+  meta_new <- select(meta_new, -study)
 
   return(write_metadata(meta_new, new_file))
 })

@@ -74,6 +74,9 @@ harmonize <- function(study_name, metadata, spec, harmonized_baseline = NULL,
       amyA = get_amyA(amyThal, spec),
       bScore = get_bScore(Braak, spec),
 
+      # Species should be "Human" for all studies
+      species = "Human",
+
       # Add study name
       study = study_name
     )
@@ -92,7 +95,9 @@ harmonize <- function(study_name, metadata, spec, harmonized_baseline = NULL,
 
   # Put harmonized fields first in the data frame
   metadata <- metadata |>
-    select(all_of(spec$required_columns), !all_of(spec$required_columns))
+    select(all_of(spec$required_columns), !all_of(spec$required_columns),
+           # Remove this column if it exists, as it's replaced by "cohort"
+           -any_of("individualIdSource"))
 
   return(metadata)
 }

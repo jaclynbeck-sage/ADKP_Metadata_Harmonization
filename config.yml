@@ -1,44 +1,42 @@
 default:
 
-  upload_synID: "syn70781466" # Staging
+  upload_synID: "syn73713763" # Staging/Metadata
 
   # Study names and file IDs ---------------------------------------------------
 
   studies:
     diverse_cohorts:
       name: "AMP-AD_DiverseCohorts"
-      files: "syn51757646.21"
+      metadata_id: "syn51757646.21"
     mayo:
       name: "MayoRNAseq"
-      files: "syn23277389.7"
+      metadata_id: "syn23277389.7"
     mc_brad:
       name: "MC-BrAD"
-      files: "syn51401700.2"
+      metadata_id: "syn51401700.2"
     mc_snrna:
       name: "MC_snRNA"
-      files: "syn31563038.1"
+      metadata_id: "syn31563038.1"
     mcmps:
       name: "MCMPS"
-      files: "syn25891193.1"
+      metadata_id: "syn25891193.1"
     msbb:
       name: "MSBB"
-      files: "syn6101474.10"
+      metadata_id: "syn6101474.10"
     nps_ad:
       name: "NPS-AD"
-      files:
-        metadata: "syn55251012.4"
-        neuropath: "syn55251003.1"
+      metadata_id: "syn55251012.4"
+      extra_metadata: "syn55251003.1"
     rosmap:
       name: "ROSMAP"
-      files: "syn3191087.11"
+      metadata_id: "syn3191087.11"
     sea_ad:
       name: "SEA-AD"
-      files:
-        metadata: "syn31149116.8"
-        external_metadata: "https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx"
+      metadata_id: "syn31149116.8"
+      extra_metadata: "https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx"
     smib_ad:
       name: "SMIB-AD"
-      files: "syn22432749.1"
+      metadata_id: "syn22432749.1"
 
   # Standardized values for string columns -------------------------------------
 
@@ -50,9 +48,13 @@ default:
 
     missing: "missing or unknown"
     required_columns:
-      ["individualID", "dataContributionGroup", "cohort", "sex", "race",
-       "isHispanic", "ageDeath", "PMI", "apoeGenotype", "apoe4Status",
+      ["individualID", "dataContributionGroup", "cohort", "species", "sex",
+       "race", "isHispanic", "ageDeath", "PMI", "apoeGenotype", "apoe4Status",
        "amyCerad", "amyAny", "amyThal", "amyA", "Braak", "bScore"]
+
+    ## Annotation variables ----------------------------------------------------
+
+    species: "Human"
 
     ## Demographics ------------------------------------------------------------
 
@@ -67,7 +69,7 @@ default:
       Amer_Ind: "American Indian or Alaska Native"
       Asian: "Asian"
       Black: "Black or African American"
-      Pacif_Islander: "Hawaiian or Pacific Islander"
+      Pacif_Islander: "Native Hawaiian or Other Pacific Islander"
       White: "White"
       other: "Other"
 
