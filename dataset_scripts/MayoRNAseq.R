@@ -35,8 +35,17 @@
 #   a `data.frame` with all relevant fields harmonized to the data dictionary.
 #   Columns not defined in the data dictionary are left as-is.
 #
-harmonize_MayoRNAseq <- function(metadata, spec) {
+harmonize_MayoRNAseq <- function(metadata, biospecimen, spec) {
+  cohort_info <- metadata |>
+    select(individualID) |>
+    merge(biospecimen) |>
+    select(individualID, specimenIdSource) |>
+    distinct() |>
+    subset(!is.na(specimenIdSource) & specimenIdSource != "SNPs") |>
+    dplyr::rename(cohort = specimenIdSource)
+
   metadata |>
+    merge(cohort_info, all.x = TRUE, sort = FALSE) |>
     dplyr::rename(
       PMI = pmi,
       isHispanic = ethnicity,
@@ -68,8 +77,17 @@ harmonize_MayoRNAseq <- function(metadata, spec) {
       # Braak values (e.g. 0.5, 4.5), which are rounded down before conversion.
       Braak = to_Braak_stage(floor(Braak), spec),
 
-      # Add cohort and contribution group
-      cohort = spec$cohort$mayo,
+      # Map cohort values from biospecimen file
+      cohort = case_match(
+        cohort,
+        "BannerSun" ~ spec$cohort$banner,
+        "MayoBrainBank" ~ spec$cohort$mayo,
+        "UniversityKentucky" ~ spec$cohort$ukentucky,
+        NA ~ spec$cohort$mayo,
+        .default = cohort
+      ),
+
+      # Add contribution group
       dataContributionGroup = spec$dataContributionGroup$mayo,
     )
 }

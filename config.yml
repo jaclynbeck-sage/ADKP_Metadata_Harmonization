@@ -11,6 +11,7 @@ default:
     mayo:
       name: "MayoRNAseq"
       metadata_id: "syn23277389.7"
+      extra_metadata: "syn20827192.13"
     mc_brad:
       name: "MC-BrAD"
       metadata_id: "syn51401700.2"
@@ -155,12 +156,13 @@ default:
       latc: "LATC"
       map: "MAP"
       mars: "MARS"
-      mayo: "Mayo Clinic"
+      mayo: "Mayo Clinic Brain Bank"
       msbb: "Mount Sinai Brain Bank"
       ros: "ROS"
       sea_ad: "SEA-AD"
       smri: "SMRI"
       ufl: "UFL"
+      ukentucky: "University of Kentucky"
       upenn: "UPenn"
       whicap: "WHICAP"
       none: ""

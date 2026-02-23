@@ -33,6 +33,9 @@ mayo <- studies$mayo
 meta_file <- synapse_download(mayo$metadata_id, mayo$name)
 meta <- read.csv(meta_file$path)
 
+biospec_file <- synapse_download(mayo$extra_metadata, mayo$name)
+biospecimen <- read.csv(biospec_file$path)
+
 if (verbose) {
   cat("\n", mayo$name, "\n")
   print(colnames(meta))
@@ -46,7 +49,7 @@ if (verbose) {
   )
 }
 
-meta_new <- harmonize(mayo$name, meta, spec) |>
+meta_new <- harmonize(mayo$name, meta, spec, extra_metadata = biospecimen) |>
   mutate(filename = meta_file$name)
 
 if (verbose) {

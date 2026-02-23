@@ -553,29 +553,6 @@ check_new_version <- function(syn_id, dataset_name = NULL) {
 }
 
 
-# Check Synapse for new file versions
-#
-# All Synapse IDs used for this code have the file's version number included for
-# reproducibility. This function checks to see if there are newer versions
-# available on Synapse than what is specified in the code, and prints a message
-# if that's the case.
-#
-# Arguments:
-#   syn_id_list - a named list where each item is a Synapse ID of the format
-#         "syn123" or "syn123.5", where the optional number after the decimal is
-#         the file version on Synapse. If no version is specified, a warning
-#         is printed stating that the latest version of the file on Synapse will
-#         be used.
-#
-# Returns:
-#   nothing
-check_new_versions <- function(syn_id_list) {
-  for (dataset_name in names(syn_id_list)) {
-    check_new_version(syn_id_list[[dataset_name]], dataset_name)
-  }
-}
-
-
 # De-duplicate metadata from different studies
 #
 # This function takes a list of metadata data frames, concatenates them, and
@@ -594,8 +571,7 @@ check_new_versions <- function(syn_id_list) {
 #   4. For cases where cohort values disagree, resolve as follows:
 #       a) Replace "ROSMAP" with the cohort value from Diverse Cohorts /
 #          AMP-AD 1.0,
-#       b) Ignore cases where the disagreement is "Mayo Clinic" vs "Banner",
-#       c) Otherwise, report the difference but don't change any values
+#       b) Otherwise, report the difference but don't change any values
 #   5. For disagreements in the "apoeGenotype" or "apoeStatus" columns, the
 #      use the "NPS-AD" value if it exists, otherwise print it as unresolvable
 #
@@ -643,22 +619,16 @@ deduplicate_studies <- function(df_list,
         # Special case: MSBB/MSSM samples were re-named for Diverse Cohorts, this
         # makes them directly comparable
         original_individualID = individualID,
-        individualID = str_replace(individualID, "AMPAD_MSSM_0+", ""),
-        individualID = case_when(
-          individualID == "29637" &
-            dataContributionGroup == spec$dataContributionGroup$mssm ~ "29637_MSSM",
-          individualID == "29582" &
-            dataContributionGroup == spec$dataContributionGroup$mssm ~ "29582_MSSM",
-          .default = as.character(individualID)
-        ),
+        individualID = msbb_ids_to_divco(individualID, dataContributionGroup),
         # Special case: Some samples contributed by "Emory" are from "Mt Sinai
         # Brain Bank" and they need to be included with MSSM samples during
         # de-duplication
         original_dataContributionGroup = dataContributionGroup,
-        dataContributionGroup = case_when(
+        dataContributionGroup = ifelse(
           dataContributionGroup == spec$dataContributionGroup$emory &
-            cohort == spec$cohort$msbb ~ spec$dataContributionGroup$mssm,
-          .default = dataContributionGroup
+            cohort == spec$cohort$msbb,
+          spec$dataContributionGroup$mssm,
+          dataContributionGroup
         )
       )
   })
@@ -828,16 +798,13 @@ deduplicate_ageDeath_pmi <- function(meta_tmp, leftover, col_name, report_string
 # This function is used inside `deduplicate_studies` to resolve duplication of
 # cohort values for a single individual. If this function is called, then
 # there are at least 2 distinct, non-NA values in the `cohort` column that are
-# assigned to this individual. This function handles two special cases and
-# defaults to just reporting the duplication if neither special case applies:
-#   1. NPS-AD reports the `cohort` of all ROSMAP samples as "ROSMAP" rather than
-#      identifying them as "ROS" or "MAP" separately. All of these samples exist
-#      in Diverse Cohorts or ROSMAP 1.0 metadata, which has the correct
-#      separation into "ROS" and "MAP", so we replace NPS-AD's ROSMAP `cohort`
-#      values with the correct values from DC/ROSMAP 1.0.
-#   2. Mayo Clinic 1.0 metadata reports cohort as "Mayo Clinic" while the same
-#      samples in Diverse Cohorts are reported as "Banner". This difference
-#      is ignored as only the Diverse Cohorts metadata is used directly.
+# assigned to this individual. This function handles one special case and
+# defaults to just reporting the duplication if the special case doesn't apply:
+#   * NPS-AD reports the `cohort` of all ROSMAP samples as "ROSMAP" rather than
+#     identifying them as "ROS" or "MAP" separately. All of these samples exist
+#     in Diverse Cohorts or ROSMAP 1.0 metadata, which has the correct
+#     separation into "ROS" and "MAP", so we replace NPS-AD's ROSMAP `cohort`
+#     values with the correct values from DC/ROSMAP 1.0.
 #
 # Arguments:
 #   meta_tmp - a data frame with 2 or more rows, where all rows have the same
@@ -871,14 +838,8 @@ deduplicate_cohort <- function(meta_tmp, leftover, col_name, spec, report_string
       meta_tmp[, col_name] <- cohort_val
     }
   } else {
-    # Special case: Mayo data may be labeled as "Mayo Clinic" in the original
-    # Mayo metadata or "Banner" in Diverse Cohorts, but we don't need to change
-    # this in either metadata file or print it out.
-    is_mayo_banner <- identical(sort(leftover), c(spec$cohort$banner, spec$cohort$mayo))
-
-    if (!is_mayo_banner) {
-      cat(report_string)
-    }
+    # Special case doesn't apply, report the mismatch but don't resolve it.
+    cat(report_string)
   }
 
   return(meta_tmp)
@@ -906,14 +867,7 @@ fill_missing_ampad1.0_ids <- function(meta_all, spec) {
   ampad_1.0 <- subset(meta_all, study %in% c("MayoRNAseq", "MSBB", "ROSMAP")) |>
     mutate(
       original_individualID = individualID,
-      individualID = str_replace(individualID, "AMPAD_MSSM_[0]+", ""),
-      individualID = case_when(
-        individualID == "29637" &
-          dataContributionGroup == spec$dataContributionGroup$mssm ~ "29637_MSSM",
-        individualID == "29582" &
-          dataContributionGroup == spec$dataContributionGroup$mssm ~ "29582_MSSM",
-        .default = as.character(individualID)
-      )
+      individualID = msbb_ids_to_divco(individualID, dataContributionGroup)
     ) |>
     select(individualID, original_individualID, cohort)
 
@@ -1016,4 +970,22 @@ updateADoutcome <- function(meta_all, spec) {
     mutate(ADoutcome = determineADoutcome(.data, spec)) |>
     ungroup() |>
     as.data.frame()
+}
+
+
+# Converts MSBB individualIDs to the same format as Diverse Cohort
+# individualIDs. MSBB IDs start with "AMPAD_MSSM_<X>", where <X> is a number
+# with 3-4 zeros in front, while Diverse Cohorts just uses <X> with leading
+# zeros stripped off. Both MSBB 1.0 and NPS-AD use MSBB-style IDs.
+msbb_ids_to_divco <- function(individualID, dataContributionGroup) {
+  individualID = str_replace(individualID, "AMPAD_MSSM_[0]+", "")
+  individualID = case_when(
+    individualID == "29637" &
+      dataContributionGroup == spec$dataContributionGroup$mssm ~ "29637_MSSM",
+    individualID == "29582" &
+      dataContributionGroup == spec$dataContributionGroup$mssm ~ "29582_MSSM",
+    .default = as.character(individualID)
+  )
+
+  return(individualID)
 }

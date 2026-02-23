@@ -63,6 +63,7 @@ harmonize_AMP_AD_DiverseCohorts <- function(metadata, spec) {
       cohort = case_match(
         cohort,
         "Banner" ~ spec$cohort$banner,
+        "Mayo Clinic" ~ spec$cohort$mayo,
         "Mt Sinai Brain Bank" ~ spec$cohort$msbb,
         .default = cohort
       )
