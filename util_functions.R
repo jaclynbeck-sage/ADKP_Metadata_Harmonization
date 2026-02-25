@@ -121,7 +121,9 @@ validate_values <- function(metadata, spec, verbose = TRUE) {
   if (any(ageDeath >= 90, na.rm = TRUE)) {
     cat("X  ageDeath has uncensored ages above 90.\n")
   } else if (any(is.na(ageDeath))) {
-    # NAs introduced by coercion to numeric, warn about initial value
+    # NAs introduced by coercion to numeric. Before coercion, we removed all NAs
+    # that existed in the column, so if NAs exist *after* coercion, that means
+    # there was a string value that couldn't be converted to a numeric value.
     nas <- which(is.na(ageDeath))
     tmp <- na.omit(metadata$ageDeath) |>
       setdiff(spec$ageDeath$over90)
@@ -201,7 +203,8 @@ validate_values <- function(metadata, spec, verbose = TRUE) {
 #   meet any of the criteria in the `case_match` statement, so the value will
 #   fail validation and can be examined.
 to_Braak_stage <- function(num, spec) {
-  return(case_match(num,
+  case_match(
+    num,
     0 ~ spec$Braak$none,
     1 ~ spec$Braak$stage1,
     2 ~ spec$Braak$stage2,
@@ -211,7 +214,7 @@ to_Braak_stage <- function(num, spec) {
     6 ~ spec$Braak$stage6,
     NA ~ spec$missing,
     .default = as.character(num)
-  ))
+  )
 }
 
 
@@ -240,14 +243,15 @@ to_Braak_stage <- function(num, spec) {
 #   character string if it doesn't meet any of the criteria in the `case_match`
 #   statement, so the value will fail validation and can be examined.
 get_bScore <- function(Braak, spec) {
-  return(case_match(Braak,
+  case_match(
+    Braak,
     spec$Braak$none ~ spec$bScore$none,
     c(spec$Braak$stage1, spec$Braak$stage2) ~ spec$bScore$stage1_2,
     c(spec$Braak$stage3, spec$Braak$stage4) ~ spec$bScore$stage3_4,
     c(spec$Braak$stage5, spec$Braak$stage6) ~ spec$bScore$stage5_6,
     NA ~ spec$missing,
     .default = as.character(Braak)
-  ))
+  )
 }
 
 
@@ -273,14 +277,15 @@ get_bScore <- function(Braak, spec) {
 #   character string if it doesn't meet any of the criteria in the `case_match`
 #   statement, so the value will fail validation and can be examined.
 get_amyAny <- function(amyCerad, spec) {
-  return(case_match(amyCerad,
+  case_match(
+    amyCerad,
     spec$amyCerad$none ~ spec$amyAny$amyNo,
     spec$amyCerad$sparse ~ spec$amyAny$amyYes,
     spec$amyCerad$moderate ~ spec$amyAny$amyYes,
     spec$amyCerad$frequent ~ spec$amyAny$amyYes,
     NA ~ spec$missing,
     .default = as.character(amyCerad)
-  ))
+  )
 }
 
 
@@ -308,14 +313,15 @@ get_amyAny <- function(amyCerad, spec) {
 #   character string if it doesn't meet any of the criteria in the `case_match`
 #   statement, so the value will fail validation and can be examined.
 get_amyA <- function(amyThal, spec) {
-  return(case_match(amyThal,
+  case_match(
+    amyThal,
     spec$amyThal$none ~ spec$amyA$none,
     c(spec$amyThal$phase1, spec$amyThal$phase2) ~ spec$amyA$phase1_2,
     spec$amyThal$phase3 ~ spec$amyA$phase3,
     c(spec$amyThal$phase4, spec$amyThal$phase5) ~ spec$amyA$phase4_5,
     NA ~ spec$missing,
     .default = as.character(amyThal)
-  ))
+  )
 }
 
 
@@ -342,24 +348,22 @@ get_amyA <- function(amyThal, spec) {
 #   `case_match` statement, so the value will fail validation and can be
 #   examined.
 get_apoe4Status <- function(apoeGenotype, spec) {
-  return(
-    case_match(
-      apoeGenotype,
-      # "yes" if there is a 4
-      c(
-        spec$apoeGenotype$e2e4,
-        spec$apoeGenotype$e3e4,
-        spec$apoeGenotype$e4e4
-      ) ~ spec$apoe4Status$e4yes,
-      # "no" if there is no 4
-      c(
-        spec$apoeGenotype$e2e2,
-        spec$apoeGenotype$e2e3,
-        spec$apoeGenotype$e3e3
-      ) ~ spec$apoe4Status$e4no,
-      NA ~ spec$missing,
-      .default = as.character(apoeGenotype)
-    )
+  case_match(
+    apoeGenotype,
+    # "yes" if there is a 4
+    c(
+      spec$apoeGenotype$e2e4,
+      spec$apoeGenotype$e3e4,
+      spec$apoeGenotype$e4e4
+    ) ~ spec$apoe4Status$e4yes,
+    # "no" if there is no 4
+    c(
+      spec$apoeGenotype$e2e2,
+      spec$apoeGenotype$e2e3,
+      spec$apoeGenotype$e3e3
+    ) ~ spec$apoe4Status$e4no,
+    NA ~ spec$missing,
+    .default = as.character(apoeGenotype)
   )
 }
 
@@ -378,13 +382,13 @@ get_apoe4Status <- function(apoeGenotype, spec) {
 # Returns:
 #   a vector of strings with age values properly censored
 censor_ages <- function(ages, spec) {
-  return(case_when(
+  case_when(
     ages %in% c("90+", "90_or_over") ~ spec$ageDeath$over90,
     ages == "" ~ NA,
     ages == spec$missing ~ NA,
     suppressWarnings(as.numeric(ages)) >= 90 ~ spec$ageDeath$over90,
     .default = as.character(ages)
-  ))
+  )
 }
 
 
@@ -399,9 +403,10 @@ censor_ages <- function(ages, spec) {
 # Arguments:
 #   metadata - a data frame of harmonized metadata where rows are individuals
 #              and columns are variables
-#   filename - the full path and name of the file to be written. This function
-#              automatically inserts "_harmonized" just before ".csv" in the
-#              file name.
+#   filename - the base name of the original metadata file from Synapse (without
+#              path information). This function automatically inserts
+#              "_harmonized" just before ".csv" in the file name, and writes it
+#              to data/output/
 #
 # Returns:
 #   the new file name that was written, which should have "_harmonized" added
@@ -442,11 +447,16 @@ write_metadata <- function(metadata, filename) {
 # Arguments:
 #   filename - the full path and name of the file to upload
 #   folder_id - the Synapse ID of the folder on Synapse where the file should be
-#              uploaded.
+#     uploaded.
+#   prov_used - (optional) a string or vector of Synapse IDs or URLs of files
+#     that were used as input, for provenance.
+#   prov_executed - (optional) a string or vector of Synapse IDs or URLs (like
+#     Github links) pointing to scripts that were run to process the data, for
+#     provenance.
 #
 # Returns:
 #   a Synapse `File` object containing information about the uploaded file
-synapse_upload <- function(filename, folder_id) {
+synapse_upload <- function(filename, folder_id, prov_used = NULL, prov_executed = NULL) {
   syn_info <- synapse_get_info(filename, folder_id)
 
   if (!is.null(syn_info)) {
@@ -461,7 +471,8 @@ synapse_upload <- function(filename, folder_id) {
   }
 
   syn_file <- File(filename, parent = folder_id)
-  syn_file <- synStore(syn_file, forceVersion = FALSE, set_annotations = FALSE)
+  syn_file <- synStore(syn_file, forceVersion = FALSE, set_annotations = FALSE,
+                       used = prov_used, executed = prov_executed)
   return(syn_file)
 }
 
@@ -559,7 +570,7 @@ check_new_version <- function(syn_id, dataset_name = NULL) {
 # then attempts to resolve cases where different studies have different data for
 # the same individual.
 #
-# For each individual ID that has duplicate rows, resolve duplicates:
+# For each individual that exists in multiple studies, resolve duplicates:
 #   1. For columns where some rows have NA and some have a unique non-NA value,
 #      replace the NA value with that unique non-NA value.
 #   2. For columns where some rows have "missing or unknown" and some have a
@@ -572,18 +583,13 @@ check_new_version <- function(syn_id, dataset_name = NULL) {
 #       a) Replace "ROSMAP" with the cohort value from Diverse Cohorts /
 #          AMP-AD 1.0,
 #       b) Otherwise, report the difference but don't change any values
-#   5. For disagreements in the "apoeGenotype" or "apoeStatus" columns, the
-#      use the "NPS-AD" value if it exists, otherwise print it as unresolvable
+#   5. For disagreements in the "apoeGenotype" or "apoeStatus" columns, use the
+#      "NPS-AD" value if it exists, otherwise print it as unresolvable
 #
 # When duplicated data is un-resolvable, either because it is a special case
 # that is intentionally flagged or because this function doesn't have anything
 # implemented to handle it, the following information is printed out:
 #   "<individualID> <column name> [<list of values for this individual/column>]"
-#
-# Note: Individual IDs from MSSM-related studies changed format in Diverse
-# Cohorts. In order to be able to compare overlapping individuals, all IDs are
-# temporarily converted to the Diverse Cohorts format, then reverted back to
-# their original values for the returned data frame.
 #
 # Note: To shorten this function and make it more readable, some processing has
 # been broken out into separate functions.
@@ -598,7 +604,7 @@ check_new_version <- function(syn_id, dataset_name = NULL) {
 #       de-duplication even if they are listed in `include_cols`
 #   verbose - if FALSE, only issues or un-resolvable data will be printed. If
 #       TRUE, information on every column with duplicate values for each
-#       individual will be reported even the duplication is resolved or ignored.
+#       individual will be reported even if the duplication is resolved or ignored.
 #
 # Returns:
 #   a single data frame containing all rows from all data frames in `df_list`,
@@ -606,58 +612,36 @@ check_new_version <- function(syn_id, dataset_name = NULL) {
 #   all columns present in any data frame in `df_list`, and values will be `NA`
 #   for rows that come from data frames without that column.
 deduplicate_studies <- function(df_list,
+                                overlap_individuals,
                                 spec,
                                 include_cols = spec$required_columns,
-                                exclude_cols = c("study"),
+                                exclude_cols = c("individualID", "dataContributionGroup"),
                                 verbose = TRUE) {
-  # Make sure certain fields in each data frame are of the same type. Also
-  # convert MSSM-style individual IDs to Diverse Cohorts-style IDs.
+  # Make sure certain fields in each data frame are of the same type, then merge
+  # in the overlap data frame to be able to compare IDs across studies
   df_list <- lapply(df_list, function(df_item) {
     df_item |>
-      mutate(
-        across(any_of(c("individualID", "apoeGenotype", "amyAny")), as.character),
-        # Special case: MSBB/MSSM samples were re-named for Diverse Cohorts, this
-        # makes them directly comparable
-        original_individualID = individualID,
-        individualID = msbb_ids_to_divco(individualID, dataContributionGroup),
-        # Special case: Some samples contributed by "Emory" are from "Mt Sinai
-        # Brain Bank" and they need to be included with MSSM samples during
-        # de-duplication
-        original_dataContributionGroup = dataContributionGroup,
-        dataContributionGroup = ifelse(
-          dataContributionGroup == spec$dataContributionGroup$emory &
-            cohort == spec$cohort$msbb,
-          spec$dataContributionGroup$mssm,
-          dataContributionGroup
-        )
-      )
+      mutate(across(any_of(c("individualID", "apoeGenotype", "amyAny")),
+                    as.character)) |>
+      # Adds "groupID" which ties individuals together across studies
+      merge(overlap_individuals)
   })
 
   meta_all <- purrr::list_rbind(df_list)
   include_cols <- setdiff(include_cols, exclude_cols)
 
-  # Find IDs that have multiple/duplicate rows. Adding dataContributionGroup
-  # accounts for overlapping IDs between different studies that don't refer to
-  # the same individual
-  dupe_ids <- meta_all |>
-    select(all_of(include_cols)) |>
-    distinct() |>
-    select(individualID, dataContributionGroup) |>
-    mutate(
-      group_id = paste(individualID, dataContributionGroup),
-      duplicate = duplicated(group_id)
-    ) |>
-    subset(duplicate == TRUE) |>
-    distinct()
+  # Find the IDs that exist in multiple studies
+  dupe_ids <- overlap_individuals |>
+    group_by(groupID) |>
+    count() |>
+    subset(n > 1) |>
+    pull(groupID)
 
   # Resolve duplicated data for each individual as best as possible
-  for (row_id in 1:nrow(dupe_ids)) {
-    ind_id <- dupe_ids$individualID[row_id]
-
+  for (group_id in dupe_ids) {
     # This will be altered to resolve duplication, and will get added back to the
     # meta_all data frame
-    meta_tmp <- subset(meta_all, individualID == ind_id &
-      dataContributionGroup == dupe_ids$dataContributionGroup[row_id])
+    meta_tmp <- subset(meta_all, groupID == group_id)
 
     for (col_name in include_cols) {
       unique_vals <- unique(meta_tmp[, col_name])
@@ -665,11 +649,11 @@ deduplicate_studies <- function(df_list,
       if (length(unique_vals) > 1) {
         # For reporting un-resolved mismatches
         report_string <- paste(
-          ind_id, col_name, "[", paste(unique_vals, collapse = ", "), "]\n"
+          group_id, col_name, "[", paste(unique_vals, collapse = ", "), "]\n"
         )
 
-        # The ageDeath/PMI validation function will print out the string if
-        # there's a mismatch. All other columns should print out here.
+        # This prints out a mismatch even if it's resolved below. If verbose is
+        # FALSE, only unresolvable mismatches will be printed.
         if (verbose) {
           cat(report_string)
         }
@@ -712,16 +696,9 @@ deduplicate_studies <- function(df_list,
     }
 
     # Replace original rows with de-duplicated data
-    rows_replace <- meta_all$individualID == ind_id &
-      meta_all$dataContributionGroup == unique(meta_tmp$dataContributionGroup)
+    rows_replace <- meta_all$groupID == group_id
     meta_all[rows_replace, ] <- meta_tmp
   }
-
-  # Revert back to original individualIDs and dataContributionGroups
-  meta_all <- meta_all |>
-    mutate(individualID = original_individualID,
-           dataContributionGroup = original_dataContributionGroup) |>
-    select(-original_individualID, -original_dataContributionGroup)
 
   return(meta_all)
 }
@@ -762,14 +739,13 @@ deduplicate_ageDeath_pmi <- function(meta_tmp, leftover, col_name, report_string
 
   equivalent <- sapply(num_vals, all.equal, num_vals[1], tolerance = 1e-3)
 
-  # If there's a real mismatch, try using the NPS-AD value if it exists. If not,
-  # report the mismatch. `num_vals` should have one unique value if all numbers
-  # are roughly equal, AND `num_vals` should be the same length as `leftover`.
-  # If it's not, that means not all values in `leftover` are numeric (i.e. one
-  # may be 90+). We report it but don't try and resolve the duplication. Note
-  # that `all.equal` returns a string with the difference between two numbers if
-  # they are not equal, rather than FALSE, so we have to check for != TRUE
-  # instead of == FALSE.
+  # If there's a real mismatch, report it. If a value is missing and there are
+  # multiple studies with equivalent but not identical values, first try using
+  # the NPS-AD value if it exists, and then the Diverse Cohorts value. This may
+  # need to be updated if more overlapping studies are added.
+  # Note that `all.equal` returns a string with the difference between two
+  # numbers if they are not equal, rather than FALSE, so we have to check for !=
+  # TRUE instead of == FALSE or !equivalent.
   if (any(equivalent != TRUE)) {
     cat(report_string)
   } else if (length(leftover) != ncol(meta_tmp)) {
@@ -821,8 +797,8 @@ deduplicate_ageDeath_pmi <- function(meta_tmp, leftover, col_name, report_string
 #   meta_tmp, which will have some `cohort` values replaced if the original
 #   value was "ROSMAP". Other values and columns are left as-is.
 deduplicate_cohort <- function(meta_tmp, leftover, col_name, spec, report_string) {
-  # If there is more than one left over value and the values don't meet the two
-  # special cases below, report it but don't try to resolve duplication.
+  # If there is more than one left over value and the values don't meet the
+  # special case below, report it but don't try to resolve duplication.
 
   # Special case: NPS-AD reports cohort on some samples as "ROSMAP", which needs
   # to instead use the cohort value from Diverse Cohorts or ROSMAP 1.0 data.
@@ -855,40 +831,48 @@ deduplicate_cohort <- function(meta_tmp, leftover, col_name, spec, report_string
 # 1.0 data in these cases.
 #
 # Arguments:
-#   meta_all - a data.frame of all Diverse Cohorts, AMP-AD 1.0, and NPS-AD data
-#     as returned by `deduplicate_studies()`.
+#   meta_all - a data.frame of all harmonized study data, as returned by `deduplicate_studies()`.
+#   overlap_individuals - a data.frame containing the individualIDs from each
+#     study, and a grouping ID (groupID) to indicate overlap between studies,
+#     as returned by `find_overlaps()`.
+#   studies - the "studies" object from config.yml
 #
 # Returns:
 #   meta_all but with appropriate `individualID_AMPAD_1.0` values filled in
-fill_missing_ampad1.0_ids <- function(meta_all, spec) {
-  dc <- subset(meta_all, study == "AMP-AD_DiverseCohorts") |>
-    select(individualID, cohort, individualID_AMPAD_1.0, study)
+fill_missing_ampad1.0_ids <- function(meta_all, overlap_individuals, studies) {
+  dc <- subset(meta_all, study == studies$diverse_cohorts$name) |>
+    select(individualID, cohort, individualID_AMPAD_1.0, study) |>
+    merge(overlap_individuals)
 
-  ampad_1.0 <- subset(meta_all, study %in% c("MayoRNAseq", "MSBB", "ROSMAP")) |>
-    mutate(
-      original_individualID = individualID,
-      individualID = msbb_ids_to_divco(individualID, dataContributionGroup)
-    ) |>
-    select(individualID, original_individualID, cohort)
+  matches_1.0 <- subset(overlap_individuals, groupID %in% dc$groupID &
+                          study %in% c(studies$mayo$name, studies$msbb$name,
+                                       studies$rosmap$name)) |>
+    dplyr::rename(individualID_1.0_tmp = individualID) |>
+    select(-study)
 
-  matches_1.0 <- merge(dc, ampad_1.0)
-  stopifnot(length(unique(matches_1.0$individualID)) == nrow(matches_1.0))
+  # There shouldn't be any duplicated unique IDs since the three 1.0 studies
+  # don't have any overlap
+  stopifnot(length(unique(matches_1.0$groupID)) == nrow(matches_1.0))
 
-  cat(str_glue("Filling {sum(is.na(matches_1.0$individualID_AMPAD_1.0))} ",
-               "missing AMPAD-1.0 IDs in Diverse Cohorts\n"))
+  missing_vals <- is.na(dc$individualID_AMPAD_1.0) &
+    dc$groupID %in% matches_1.0$groupID
 
-  # This does nothing to the values that are already filled in, but replaces
-  # NAs with the 1.0 ID
-  matches_1.0$individualID_AMPAD_1.0 <- matches_1.0$original_individualID
+  cat(str_glue("Filling {sum(missing_vals)} missing AMPAD-1.0 IDs in Diverse Cohorts"), "\n")
 
-  matches_1.0 <- select(matches_1.0, -original_individualID)
+  # Merge in the 1.0 individual IDs from matches_1.0 as a column so we can do
+  # direct replacement
+  dc <- merge(dc, matches_1.0, all = TRUE) |>
+    mutate(individualID_AMPAD_1.0 = ifelse(is.na(individualID_AMPAD_1.0),
+                                           individualID_1.0_tmp,
+                                           individualID_AMPAD_1.0)) |>
+    select(-individualID_1.0_tmp)
 
   col_order <- colnames(meta_all)
 
   meta_all |>
     # Replace column
     select(-individualID_AMPAD_1.0) |>
-    merge(matches_1.0, all = TRUE, sort = FALSE) |>
+    merge(dc, all = TRUE, sort = FALSE) |>
     # Restore original column order
     select(all_of(col_order))
 }

@@ -1,6 +1,7 @@
 default:
 
-  upload_synID: "syn73713763" # Staging/Metadata
+  upload_synID: "syn73811569" # Staging/Metadata
+  github_url: "https://github.com/jaclynbeck-sage/ADKP_Metadata_Harmonization/blob/main/Harmonize_All_Studies.R"
 
   # Study names and file IDs ---------------------------------------------------
 
@@ -8,36 +9,55 @@ default:
     diverse_cohorts:
       name: "AMP-AD_DiverseCohorts"
       metadata_id: "syn51757646.21"
+      harmonize_fn: "harmonize_AMP_AD_DiverseCohorts"
+
     mayo:
       name: "MayoRNAseq"
       metadata_id: "syn23277389.7"
       extra_metadata: "syn20827192.13"
+      harmonize_fn: "harmonize_MayoRNAseq"
+
     mc_brad:
       name: "MC-BrAD"
       metadata_id: "syn51401700.2"
+      harmonize_fn: "harmonize_MC_BrAD"
+
     mc_snrna:
       name: "MC_snRNA"
       metadata_id: "syn31563038.1"
+      harmonize_fn: "harmonize_MC_snRNA"
+
     mcmps:
       name: "MCMPS"
       metadata_id: "syn25891193.1"
+      harmonize_fn: "harmonize_MCMPS"
+
     msbb:
       name: "MSBB"
       metadata_id: "syn6101474.10"
+      harmonize_fn: "harmonize_MSBB"
+
     nps_ad:
       name: "NPS-AD"
       metadata_id: "syn55251012.4"
       extra_metadata: "syn55251003.1"
+      harmonize_fn: "harmonize_NPS_AD"
+
     rosmap:
       name: "ROSMAP"
       metadata_id: "syn3191087.11"
+      harmonize_fn: "harmonize_ROSMAP"
+
     sea_ad:
       name: "SEA-AD"
       metadata_id: "syn31149116.8"
       extra_metadata: "https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx"
+      harmonize_fn: "harmonize_SEA_AD"
+
     smib_ad:
       name: "SMIB-AD"
       metadata_id: "syn22432749.1"
+      harmonize_fn: "harmonize_SMIB_AD"
 
   # Standardized values for string columns -------------------------------------
 

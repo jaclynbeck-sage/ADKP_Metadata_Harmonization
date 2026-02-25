@@ -1,8 +1,6 @@
-# This file contains one function per data set that performs all harmonization
-# operations. Specific changes to each data set are documented in the comments
-# of the corresponding functions. These functions are tied to specific versions
-# of each source file and may need to be updated if the source metadata file is
-# updated.
+# This file contains the generic harmonize function that is called for all data
+# sets. It also loads necessary libraries and sources the processing scripts
+# needed to harmonize each data set.
 
 library(dplyr)
 library(stringr)
@@ -16,34 +14,30 @@ invisible(sapply(dataset_files, source, .GlobalEnv))
 #
 # Runs the appropriate dataset-specific function to rename and harmonize
 # variables, fills in any NA values with "missing or unknown", and adds any
-# missing columns to the data frame. It also de-duplicates studies that need it
-# with AMP-AD 1.0 / Diverse Cohorts data.
+# missing columns to the data frame.
 #
 # Arguments:
-#   study_name - the name of the study
-#   metadata - a `data.frame` of metadata from the source metadata file. Columns
-#     are variables and rows are individuals.
+#   study_obj - a single study object from the "studies" list in `config.yml`
 #   spec - a `config` object describing the standardized values for each field,
 #     as defined by this project's `config.yml` file
-#   harmonized_baseline - a `data.frame` of de-duplicated and harmonized
-#     metadata from all AMP-AD 1.0 studies and Diverse Cohorts. If the study
-#     does not need de-duplication, this should be NULL.
 #   extra_metadata - a `data.frame` of extra metadata that is needed by several
-#     studies, which has different information depending on study. If the study
-#     does not need extra metadata, this should be NULL.
+#     studies, which has different information depending on study. Different
+#     studies have extra metadata in different file formats and it may not be
+#     from Synapse, so the data frame is passed in rather than using the
+#     extra_metadata field of study_obj and reading it in this function. If the
+#     study does not need extra metadata, this should be NULL.
 #
 # Returns:
 #   a `data.frame` with all relevant fields harmonized to the data dictionary.
 #   Columns not defined in the data dictionary are left as-is.
 #
-harmonize <- function(study_name, metadata, spec, harmonized_baseline = NULL,
-                      extra_metadata = NULL) {
+harmonize <- function(study_obj, spec, extra_metadata = NULL) {
+  # Download the main metadata file from Synapse
+  meta_file <- synapse_download(study_obj$metadata_id, study_obj$name)
+  metadata <- read.csv(meta_file$path)
 
-  # Find the study-specific harmonization function to call. Some studies have
-  # "-" in their name (like SEA-AD), which needs to be changed to "_" for
-  # function names.
-  r_safe_name <- str_replace(study_name, "-", "_")
-  study_fn <- match.fun(paste0("harmonize_", r_safe_name))
+  # Find the study-specific harmonization function to call.
+  study_fn <- match.fun(study_obj$harmonize_fn)
 
   if (is.null(extra_metadata)) {
     metadata <- study_fn(metadata, spec)
@@ -75,23 +69,16 @@ harmonize <- function(study_name, metadata, spec, harmonized_baseline = NULL,
       bScore = get_bScore(Braak, spec),
 
       # Species should be "Human" for all studies
-      species = "Human",
+      species = spec$species,
 
-      # Add study name
-      study = study_name
+      # Add study name (this variable is temporary and does not appear in the
+      # final output)
+      study = study_obj$name,
+
+      # Add the original filename to keep track of it (this variable is
+      # temporary and does not appear in the final output)
+      filename = meta_file$name
     )
-
-  # If applicable, pull missing information from AMP-AD 1.0 and Diverse Cohorts metadata
-  # TODO
-  if (!is.null(harmonized_baseline)) {
-    metadata <- deduplicate_studies(
-      list(metadata, harmonized_baseline),
-      spec,
-      verbose = FALSE
-    ) |>
-      subset(study == study_name) |>
-      select(all_of(colnames(metadata)))
-  }
 
   # Put harmonized fields first in the data frame
   metadata <- metadata |>

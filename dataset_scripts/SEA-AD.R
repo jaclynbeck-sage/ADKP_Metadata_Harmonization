@@ -52,7 +52,7 @@ harmonize_SEA_AD <- function(metadata_synapse, metadata_allen, spec) {
   metadata_allen <- metadata_allen |>
     select("Donor ID", "Hispanic/Latino", "Atherosclerosis")
 
-  metadata_synapse <- metadata_synapse |> select(-Atherosclerosis) # v8 fix
+  metadata_synapse <- metadata_synapse |> select(-Atherosclerosis, -X) # v8 fix
 
   # v8 fix: match column names of v7
   # TODO is this necessary?
