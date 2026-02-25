@@ -119,6 +119,36 @@ find_overlaps <- function(df_list, studies, spec) {
 }
 
 
+# Converts MSBB individualIDs to the same format as Diverse Cohorts individualIDs.
+#
+# MSBB IDs start with "AMPAD_MSSM_<X>", where <X> is a number with 3-4 zeros in
+# front, while Diverse Cohorts just uses <X> with leading zeros stripped off.
+# Both MSBB 1.0 and NPS-AD use MSBB-style IDs. Diverse Cohorts also has two
+# MSSM samples that are <X>_MSSM to avoid collisions with Mayo IDs, so we
+# rename the corresponding samples in MSBB 1.0 data to match.
+#
+# Arguments:
+#   individualID - a vector of individualIDs from a data frame
+#   dataContributionGroup - a vector of dataContributionGroup values from the
+#     same data frame
+#
+# Returns:
+#   a vector the same size as `individualID` but with the IDs modified as
+#   described above.
+#
+msbb_ids_to_divco <- function(individualID, dataContributionGroup) {
+  individualID = str_replace(as.character(individualID), "AMPAD_MSSM_[0]+", "")
+  individualID = ifelse(
+    individualID %in% c("29637", "29582") &
+      dataContributionGroup == spec$dataContributionGroup$mssm,
+    paste0(individualID, "_MSSM"),
+    individualID
+  )
+
+  return(individualID)
+}
+
+
 # Find columns present in both data sets
 #
 # This function finds columns that appear in both data sets for the purpose of

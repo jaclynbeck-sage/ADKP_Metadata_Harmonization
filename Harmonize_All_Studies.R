@@ -4,9 +4,10 @@ library(dplyr)
 library(stringr)
 library(readxl)
 
-source("util_functions.R")
-source("harmonize_function.R")
-source("overlap_functions.R")
+source(file.path("functions", "deduplication_functions.R"))
+source(file.path("functions", "harmonize_functions.R"))
+source(file.path("functions", "overlap_functions.R"))
+source(file.path("functions", "util_functions.R"))
 
 studies <- config::get("studies")
 spec <- config::get("columns")
