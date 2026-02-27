@@ -1,6 +1,8 @@
 # ADKP Metadata Harmonization
 This code harmonizes metadata from studies across the [AD Knowledge Portal](https://adknowledgeportal.synapse.org/). Common columns between studies (for example age, sex, Braak stage) have been standardized to have the same column names and values across all studies to make cross-comparison simpler. The output of this project is the [ADKP_Harmonization_Study](https://adknowledgeportal.synapse.org/Explore/Studies/DetailsPage/StudyDetails?Study=syn70781457). A full study description, a list of included studies, and a methods overview are available on the study page. 
 
+The code has very detailed documentation in every file, so this README contains a general overview of each step plus where to look for specific implementation details.
+
 ## Code overview
 
 The general process is as follows:
@@ -19,8 +21,6 @@ Due to the scope of this project, the process is broken out into several sub-fun
   * `overlap_functions.R` - functions for finding overlapping ID between studies and verifying they refer to the same individual
   * `util_functions.R` - functions for file I/O, Synapse I/O, and validation of the final harmonized files
   * `study_specific_functions/*` - one file/function for each study that handles study-specific changes needed for harmonization
- 
-The code has very detailed documentation in every file, so this README only contains a general overview of each step.
 
 ----
 ### 1. Harmonize each study
