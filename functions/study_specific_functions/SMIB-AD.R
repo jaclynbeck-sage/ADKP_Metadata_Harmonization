@@ -7,9 +7,6 @@
 #
 # NOTE: CERAD values are coded using ROSMAP's system.
 #
-# NOTE: For this function's name, "-" has been converted to "_" in the study
-# name to conform to R-safe function names.
-#
 # Modifications needed for version 1:
 #   * Rename columns:
 #     * `pmi` => `PMI`

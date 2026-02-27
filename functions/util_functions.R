@@ -1,7 +1,7 @@
 # This file contains utility functions and variables that are used in multiple
 # steps/scripts and are not dataset-specific. Functions include things like
-# Synapse upload/download, quality control printouts, converting raw values to
-# harmonized values, and harmonized value validation.
+# Synapse upload/download, quality control printouts, and harmonized value
+# validation.
 library(dplyr)
 library(stringr)
 library(synapser)

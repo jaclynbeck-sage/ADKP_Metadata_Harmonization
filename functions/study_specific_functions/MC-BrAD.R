@@ -5,14 +5,6 @@
 #
 # Source metadata file: syn51401700 (version 2) on Synapse.
 #
-# NOTE: For this function's name, "-" has been converted to "_" in the study
-# name to conform to R-safe function names.
-#
-# NOTE: This data set has some sample overlap with AMP-AD 1.0 Mayo metadata and
-# Diverse Cohorts metadata. There are some missing values in this data set that
-# exist in these data sets, so those get pulled in in the main harmonization
-# function.
-#
 # Modifications needed for version 2:
 #   * Rename columns:
 #     * `pmi` => `PMI`

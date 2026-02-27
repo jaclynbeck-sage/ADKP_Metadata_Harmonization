@@ -12,9 +12,6 @@
 #   * the "Donor Metadata" file downloaded from https://portal.brain-map.org.
 #     Full URL: https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx
 #
-# NOTE: For this function's name, "-" has been converted to "_" in the study
-# name to conform to R-safe function names.
-#
 # Modifications needed for version 8:
 #   * Rename several columns:
 #     * `pmi` => `PMI`

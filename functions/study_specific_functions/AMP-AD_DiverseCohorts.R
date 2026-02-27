@@ -6,9 +6,6 @@
 #
 # Source metadata file: syn51757646 (version 21) on Synapse.
 #
-# NOTE: For this function's name, "-" has been converted to "_" in the study
-# name to conform to R-safe function names.
-#
 # Modifications needed for version 21:
 #   * Change `ageDeath` and `PMI` value "missing or unknown" to `NA`
 #   * Change `PMI` to a numeric column

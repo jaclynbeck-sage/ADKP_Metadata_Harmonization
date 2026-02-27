@@ -5,7 +5,7 @@
 # individual metadata before harmonization to obtain Braak scores.
 #
 # Source metadata files:
-#   * syn55251012 (version 5, individual metadata) on Synapse
+#   * syn55251012 (version 4, individual metadata) on Synapse
 #   * syn55251003 (version 1, neuropathology data) on Synapse
 #
 # NOTE: Cerad mapping is defined in the NPS-AD data dictionary (syn57373364).
@@ -16,10 +16,7 @@
 # the original race and isHispanic columns are filled in with self-report data
 # where available from other data sets.
 #
-# NOTE: For this function's name, "-" has been converted to "_" in the study
-# name to conform to R-safe function names.
-#
-# Modifications needed for version 5:
+# Modifications needed for version 4:
 #   * Merge neuropathology data with individual metadata
 #   * Rename columns:
 #     * `ethnicity` => `geneticAncestry_isHispanic`
