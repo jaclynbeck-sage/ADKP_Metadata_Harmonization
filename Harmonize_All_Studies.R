@@ -127,19 +127,14 @@ df_list[[msbb$name]] <- meta_new
 
 nps <- studies$nps_ad
 
-# Extra metadata -- neuropathology file from Synapse
-neuro_file <- synapse_download(nps$extra_metadata, nps$name)
-neuropath <- read.csv(neuro_file$path) |>
-  dplyr::rename(individualID = IndividualID)
-
-meta_new <- harmonize(nps, spec, extra_metadata = neuropath)
+meta_new <- harmonize(nps, spec)
 
 if (verbose) {
   print_qc(meta_new, spec)
 }
 
 cat("\n", nps$name, "\n")
-validate_values(meta_new, spec) # Cohort will fail until after harmonization
+validate_values(meta_new, spec)
 
 df_list[[nps$name]] <- meta_new
 

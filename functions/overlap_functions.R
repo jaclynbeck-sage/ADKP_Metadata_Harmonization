@@ -67,8 +67,8 @@ find_overlaps <- function(df_list, studies, spec) {
   # Step 1: Modify all of the study data to use consistent ID formats and handle
   # a few special cases.
   #   * MSBB IDs need to have "AMPAD_MSSM_00.." removed to match Diverse Cohorts IDs.
-  #   * Samples in Diverse Cohorts that have dataContributionGroup = Emory, but
-  #     these samples should pair up with MSBB samples. We change the
+  #   * Some MSBB samples in Diverse Cohorts have dataContributionGroup = Emory,
+  #     but these samples should pair up with MSBB samples. We change the
   #     dataContributionGroup to MSSM so these samples match between Diverse
   #     Cohorts and MSBB 1.0.
   #   * Special case: MC_snRNA uses "Control" in its diagnosis field instead of
@@ -82,6 +82,8 @@ find_overlaps <- function(df_list, studies, spec) {
     data <- study_df |>
       mutate(orig_individualID = as.character(individualID),
              individualID = msbb_ids_to_divco(individualID, dataContributionGroup),
+             # One Mayo ID has _Mayo appended
+             individualID = str_replace(individualID, "_Mayo", ""),
              # Round all numeric columns to 2 digits for comparison
              across(where(is.numeric), ~round(.x, digits = 2)),
              # Round numeric ageDeath values too
@@ -96,6 +98,11 @@ find_overlaps <- function(df_list, studies, spec) {
                                             dataContributionGroup),
              # Used for group finding later on
              node_id = paste0(study_name, ";", individualID)) |>
+      # Make node_ids unique when two individuals in the same study have the
+      # same individualID after alterations to the IDs for cross-compatibility
+      group_by(node_id) |>
+      mutate(node_id = paste0(unique(node_id), ";", 1:length(node_id))) |>
+      ungroup() |>
       select(-filename)
 
     # Special case: MC_snRNA "Control" -> "control"
@@ -245,23 +252,29 @@ create_match_df <- function(all_ids, study_dfs, studies, spec) {
   # For each ID that appears in at least two studies, create a data frame with
   # the combined info for all pairs of studies it appears in
   match_df <- lapply(matched_ids, function(id) {
-    studies_check <- subset(all_ids, individualID == id) |> pull(study)
-
-    # All possible pairs from studies_check, removing bad pairs we already
-    # know about
-    study_pairs <- combn(studies_check, m = 2, simplify = FALSE) |>
-      setdiff(bad_pairs)
+    nodes_check <- subset(all_ids, individualID == id) |> pull(node_id)
+    node_pairs <- combn(nodes_check, m = 2, simplify = FALSE)
 
     # Create one data frame per pair and rbind all data frames together
-    lapply(study_pairs, function(pair) {
-      data1 <- subset(study_dfs[[pair[1]]], individualID == id)
-      data2 <- subset(study_dfs[[pair[2]]], individualID == id)
+    lapply(node_pairs, function(pair) { #study_pairs, function(pair) {
+      study1 <- subset(all_ids, node_id == pair[1]) |> pull(study)
+      study2 <- subset(all_ids, node_id == pair[2]) |> pull(study)
+
+      # Don't investigate bad pairs we already know about
+      if (list(sort(c(study1, study2))) %in% bad_pairs) {
+        return(NULL)
+      }
+
+      data1 <- subset(study_dfs[[study1]], node_id == pair[1])
+      data2 <- subset(study_dfs[[study2]], node_id == pair[2])
+
+      stopifnot(nrow(data1) == 1 && nrow(data2) == 1)
 
       same_cols <- find_matching_columns(pair, data1, data2)
 
       data.frame(id = id,
-                 study1 = pair[1],
-                 study2 = pair[2],
+                 study1 = data1$study,
+                 study2 = data2$study,
                  node_id1 = data1$node_id,
                  node_id2 = data2$node_id,
                  column = same_cols,
@@ -285,16 +298,6 @@ create_match_df <- function(all_ids, study_dfs, studies, spec) {
       # Fix NA match values (which happen when either val1 or val2 are NA)
       match = ifelse(is.na(match), FALSE, match)
     )
-
-  # Special case: NPS-AD cohort may be "ROSMAP" instead of "ROS" or "MAP"
-  # but we consider that a match. The "if" statement is TRUE if a) NPS-AD is
-  # one of the studies, and b) one of the cohort values is "ROSMAP"
-  nps_cohort <- (match_df$study1 == studies$nps_ad$name |
-                   match_df$study2 == studies$nps_ad$name) &
-    match_df$column == "cohort" &
-    (match_df$val1 == "ROSMAP" | match_df$val2 == "ROSMAP")
-
-  match_df$match[nps_cohort] <- TRUE
 
   # Anything that isn't a match or missing data is a mismatch
   match_df$mismatch <- !match_df$match & !match_df$one_missing & !match_df$both_missing
@@ -345,36 +348,38 @@ match_individuals <- function(match_df, all_ids, studies) {
   # 50% of the data can be missing, but the non-missing data matches 100%.
   same_samples <- subset(stats, pct_match >= 0.5 & n_mismatch == 0)
 
-  # Special case: There is 1 ROSMAP sample that is missing more than 50% of its
-  # data but has been verified by hand as a match with NPS-AD. We run this
-  # generic check instead of hard-coding the sample ID so that we are aware if
-  # this happens with any other new studies.
+  # Special case: There are 10 ROSMAP samples that are missing more than 50% of
+  # their data but have been verified by hand as a match with the corresponding
+  # NPS-AD or Diverse Cohorts samples. We run this generic check instead of
+  # hard-coding the sample IDs so that we are aware if this happens with any
+  # other new studies.
   missing_data_samples <- subset(stats, pct_match < 0.5 & n_mismatch == 0 &
                                    grepl("cohort", fields_match))
 
-  # Check: There should only be 1 row, paired between ROSMAP and NPS-AD. If more
-  # rows show up after adding a new study, this will throw an error so we can
-  # verify by hand if the new individual matches, and can alter this statement
-  # so it passes again.
-  nps_name <- studies$nps_ad$name
+  # Check: There should be 10 rows, paired between ROSMAP and either NPS-AD or
+  # Diverse Cohorts. If more rows show up after adding a new study, this will
+  # throw an error so we can verify by hand if the new individual matches, and
+  # can alter this statement so it passes again.
   stopifnot(
-    nrow(missing_data_samples) == 1 &&
-      all(c(nps_name, studies$rosmap$name) %in%
-            c(missing_data_samples$study1, missing_data_samples$study2))
+    nrow(missing_data_samples) == 10 &&
+      all(missing_data_samples$study1 %in%
+            c(studies$diverse_cohorts$name, studies$nps_ad$name)) &&
+      all(missing_data_samples$study2 == studies$rosmap$name)
   )
 
   # Special case: Until de-duplication, NPS-AD data might have up to 1 mismatch
   # with Diverse Cohorts or MSBB data but will still have > 50% matches. The
   # samples in this subset have been verified as matching by hand.
+  nps_name <- studies$nps_ad$name
   nps_samples <- subset(stats,
                         (study1 == nps_name | study2 == nps_name) &
                           pct_match >= 0.5 & n_mismatch == 1)
 
-  # Check: There should only be 8 samples, and the only studies present should
+  # Check: There should only be 4 samples, and the only studies present should
   # be Diverse Cohorts, MSBB, and NPS-AD. If this changes after adding a new
   # study, the new samples need to be verified by hand and added to the check
   # so it passes.
-  stopifnot(nrow(nps_samples) == 8 &&
+  stopifnot(nrow(nps_samples) == 4 &&
               all(c(nps_samples$study1, nps_samples$study2) %in%
                     c(studies$diverse_cohorts$name, studies$msbb$name, nps_name)))
 

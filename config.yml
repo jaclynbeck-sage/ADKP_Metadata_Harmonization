@@ -39,8 +39,7 @@ default:
 
     nps_ad:
       name: "NPS-AD"
-      metadata_id: "syn55251012.4"
-      extra_metadata: "syn55251003.1"
+      metadata_id: "syn55251012.6"
       harmonize_fn: "harmonize_NPS_AD"
 
     rosmap:
