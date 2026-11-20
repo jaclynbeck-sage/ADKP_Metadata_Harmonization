@@ -8,11 +8,11 @@
 # in the missing Hispanic/Latino information from the Allen Institute version.
 #
 # Source metadata files:
-#   * syn31149116 (version 8) on Synapse
+#   * syn31149116 (version 9) on Synapse
 #   * the "Donor Metadata" file downloaded from https://portal.brain-map.org.
 #     Full URL: https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx
 #
-# Modifications needed for version 8:
+# Modifications needed for version 9:
 #   * Rename several columns:
 #     * `pmi` => `PMI`
 #     * `Hispanic.Latino` => `isHispanic`

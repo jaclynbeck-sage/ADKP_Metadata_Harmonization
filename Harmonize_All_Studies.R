@@ -247,6 +247,7 @@ new_files <- lapply(df_list, function(meta_old) {
 # Upload to ADKP metadata space
 
 upload_id <- config::get("upload_synID")
+release_id <- config::get("release_synID")
 github <- config::get("github_url")
 
 # Metadata files
@@ -261,9 +262,9 @@ for (item in new_files) {
     prov_used <- c(prov_used, study_obj$extra_metadata)
   }
 
-  synapse_upload(item$filename, upload_id, prov_used, prov_executed = github)
+  synapse_upload(item$filename, upload_id, release_id, prov_used, prov_executed = github)
 }
 
 # Study overlap file
 prov_used <- sapply(studies, "[[", "metadata_id")
-synapse_upload(overlap_file, upload_id, prov_used, prov_executed = github)
+synapse_upload(overlap_file, upload_id, release_id, prov_used, prov_executed = github)

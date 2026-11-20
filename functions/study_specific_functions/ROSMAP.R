@@ -3,12 +3,12 @@
 # Modifies the ROSMAP individual metadata file to conform to the ADKP data
 # dictionary.
 #
-# Source metadata file: syn3191087 (version 11) on Synapse.
+# Source metadata file: syn3191087 (version 12) on Synapse.
 #
 # The clinical codebook describing the meanings of values in each column can be
 # found at syn3191090 on Synapse.
 #
-# Modifications needed for version 11:
+# Modifications needed for version 12:
 #   * Rename multiple columns:
 #     * `spanish` => `isHispanic`
 #     * `age_death` => `ageDeath`

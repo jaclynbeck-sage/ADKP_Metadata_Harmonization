@@ -217,6 +217,9 @@ write_metadata <- function(metadata, filename) {
     }
   }
 
+  output_dir <- file.path("data", "output")
+  dir.create(output_dir, showWarnings = FALSE)
+
   new_filename <- file.path(
     "data", "output", str_replace(filename, "\\.(csv|txt)", "_harmonized.csv")
   )
@@ -241,6 +244,8 @@ write_metadata <- function(metadata, filename) {
 #   filename - the full path and name of the file to upload
 #   folder_id - the Synapse ID of the folder on Synapse where the file should be
 #     uploaded.
+#   release_id - the Synapse ID of the released metadata folder, used to check
+#     for file changes
 #   prov_used - (optional) a string or vector of Synapse IDs or URLs of files
 #     that were used as input, for provenance.
 #   prov_executed - (optional) a string or vector of Synapse IDs or URLs (like
@@ -249,13 +254,19 @@ write_metadata <- function(metadata, filename) {
 #
 # Returns:
 #   a Synapse `File` object containing information about the uploaded file
-synapse_upload <- function(filename, folder_id, prov_used = NULL, prov_executed = NULL) {
+synapse_upload <- function(filename, folder_id, release_id, prov_used = NULL, prov_executed = NULL) {
+  # Check if the file already exists in staging
   syn_info <- synapse_get_info(filename, folder_id)
+
+  # If not, check if it's in the released folder
+  if (is.null(syn_info)) {
+    syn_info <- synapse_get_info(filename, release_id)
+  }
 
   if (!is.null(syn_info)) {
     md5 <- tools::md5sum(filename)
 
-    # Don't actually update the file.
+    # Don't actually update the file if the md5sums match
     if (md5 == syn_info$get("_file_handle")$contentMd5) {
       message(str_glue("\"{basename(filename)}\" matches the file on Synapse ",
                        "and will not be re-uploaded."))

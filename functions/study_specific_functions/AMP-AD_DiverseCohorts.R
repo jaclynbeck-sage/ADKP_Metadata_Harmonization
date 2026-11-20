@@ -4,9 +4,9 @@
 # previously harmonized using a very similar data dictionary to what is needed
 # for the ADKP harmonization project.
 #
-# Source metadata file: syn51757646 (version 21) on Synapse.
+# Source metadata file: syn51757646 (version 22) on Synapse.
 #
-# Modifications needed for version 21:
+# Modifications needed for version 22:
 #   * Change `ageDeath` and `PMI` value "missing or unknown" to `NA`
 #   * Change `PMI` to a numeric column
 #   * Change `race` "other" to "Other"

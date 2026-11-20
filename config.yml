@@ -1,6 +1,7 @@
 default:
 
   upload_synID: "syn73811569" # Staging/Metadata
+  release_synID: "syn73713763" # ADKP-visible Metadata folder
   github_url: "https://github.com/jaclynbeck-sage/ADKP_Metadata_Harmonization/blob/main/Harmonize_All_Studies.R"
 
   # Study names and file IDs ---------------------------------------------------
@@ -8,7 +9,7 @@ default:
   studies:
     diverse_cohorts:
       name: "AMP-AD_DiverseCohorts"
-      metadata_id: "syn51757646.21"
+      metadata_id: "syn51757646.22"
       harmonize_fn: "harmonize_AMP_AD_DiverseCohorts"
 
     mayo:
@@ -39,18 +40,18 @@ default:
 
     nps_ad:
       name: "NPS-AD"
-      metadata_id: "syn55251012.6"
+      metadata_id: "syn55251012.9"
       harmonize_fn: "harmonize_NPS_AD"
 
     rosmap:
       name: "ROSMAP"
-      metadata_id: "syn3191087.11"
+      metadata_id: "syn3191087.12"
       harmonize_fn: "harmonize_ROSMAP"
 
     sea_ad:
       name: "SEA-AD"
-      metadata_id: "syn31149116.8"
-      extra_metadata: "https://brainmapportal-live-4cc80a57cd6e400d854-f7fdcae.divio-media.net/filer_public/b4/c7/b4c727e1-ede1-4c61-b2ee-bf1ae4a3ef68/sea-ad_cohort_donor_metadata_072524.xlsx"
+      metadata_id: "syn31149116.9"
+      extra_metadata: "https://cdn.prod.website-files.com/689cfbd308fa7373b604d290/68debdfdd1b8e9f8fd64dab0_sea-ad_cohort_donor_metadata_072524.xlsx"
       harmonize_fn: "harmonize_SEA_AD"
 
     smib_ad:

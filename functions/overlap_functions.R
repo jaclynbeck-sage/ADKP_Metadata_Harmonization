@@ -375,11 +375,11 @@ match_individuals <- function(match_df, all_ids, studies) {
                         (study1 == nps_name | study2 == nps_name) &
                           pct_match >= 0.5 & n_mismatch == 1)
 
-  # Check: There should only be 4 samples, and the only studies present should
-  # be Diverse Cohorts, MSBB, and NPS-AD. If this changes after adding a new
-  # study, the new samples need to be verified by hand and added to the check
-  # so it passes.
-  stopifnot(nrow(nps_samples) == 4 &&
+  # Check: There should be 13 samples, and the only studies present should be
+  # Diverse Cohorts, MSBB, and NPS-AD. If this changes after adding a new study,
+  # the new samples need to be verified by hand and added to the check so it
+  # passes.
+  stopifnot(nrow(nps_samples) == 13 &&
               all(c(nps_samples$study1, nps_samples$study2) %in%
                     c(studies$diverse_cohorts$name, studies$msbb$name, nps_name)))
 
