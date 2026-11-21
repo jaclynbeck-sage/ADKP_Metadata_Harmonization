@@ -7,6 +7,11 @@ default:
   # Study names and file IDs ---------------------------------------------------
 
   studies:
+    bd2_mssm:
+      name: "BD2_MSSM"
+      metadata_id: "syn76211469.19" #"syn77457185"
+      harmonize_fn: "harmonize_BD2_MSSM"
+
     diverse_cohorts:
       name: "AMP-AD_DiverseCohorts"
       metadata_id: "syn51757646.22"
@@ -163,6 +168,7 @@ default:
       nimh: "NIMH Human Brain Collection Core"
       rush: "Rush Alzheimer's Disease Center"
       stanley: "Stanley Medical Research Institute"
+      upitt: "University of Pittsburgh"
 
     cohort:
       banner: "Banner Sun Health Research Institute"
@@ -184,5 +190,6 @@ default:
       ufl: "UFL"
       ukentucky: "University of Kentucky"
       upenn: "UPenn"
+      upitt_nbb: "UPitt NeuroBioBank"
       whicap: "WHICAP"
       none: ""

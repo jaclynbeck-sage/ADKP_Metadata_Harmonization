@@ -23,6 +23,22 @@ df_list <- vector(mode = "list", length = length(studies))
 names(df_list) <- sapply(studies, "[[", "name")
 
 
+# BD2_MSSM ---------------------------------------------------------------------
+
+bd2_mssm <- studies$bd2_mssm
+
+meta_new <- harmonize(bd2_mssm, spec)
+
+if (verbose) {
+  print_qc(meta_new, spec)
+}
+
+cat("\n", bd2_mssm$name, "\n")
+validate_values(meta_new, spec)
+
+df_list[[bd2_mssm$name]] <- meta_new
+
+
 # Diverse Cohorts --------------------------------------------------------------
 
 diverse_cohorts <- studies$diverse_cohorts

@@ -256,7 +256,7 @@ create_match_df <- function(all_ids, study_dfs, studies, spec) {
     node_pairs <- combn(nodes_check, m = 2, simplify = FALSE)
 
     # Create one data frame per pair and rbind all data frames together
-    lapply(node_pairs, function(pair) { #study_pairs, function(pair) {
+    lapply(node_pairs, function(pair) {
       study1 <- subset(all_ids, node_id == pair[1]) |> pull(study)
       study2 <- subset(all_ids, node_id == pair[2]) |> pull(study)
 
@@ -291,8 +291,18 @@ create_match_df <- function(all_ids, study_dfs, studies, spec) {
       # Convert all "missing or unknown" values to NA for easier missingness checks
       val1 = na_if(val1, spec$missing),
       val2 = na_if(val2, spec$missing),
-      # Equivalence or missing values
-      match = val1 == val2,
+      # Equivalence or missing values -- account for special case where BD2_MSSM
+      # values are rounded to 1 decimal, while NPS-AD / MSSM are rounded to 2
+      # decimals
+      match = ifelse(
+        # If BD2 is one of the studies, round PMI to 1 decimal before comparison
+        column == "PMI" & any(c(study1, study2) == studies$bd2_mssm$name),
+        suppressWarnings(
+          round(as.numeric(val1), digits = 1) == round(as.numeric(val2), digits = 1)
+        ),
+        # Otherwise, do a straight comparison of the values
+        val1 == val2
+      ),
       both_missing = is.na(val1) & is.na(val2),
       one_missing = (is.na(val1) | is.na(val2)) & !both_missing,
       # Fix NA match values (which happen when either val1 or val2 are NA)
@@ -350,21 +360,24 @@ match_individuals <- function(match_df, all_ids, studies) {
 
   # Special case: There are 10 ROSMAP samples that are missing more than 50% of
   # their data but have been verified by hand as a match with the corresponding
-  # NPS-AD or Diverse Cohorts samples. We run this generic check instead of
-  # hard-coding the sample IDs so that we are aware if this happens with any
-  # other new studies.
+  # NPS-AD or Diverse Cohorts samples. There is also 1 BD2_MSSM sample that is
+  # missing more than 50% of its data but is still a match to an NPS-AD sample.
+  # We run this generic check instead of hard-coding the sample IDs so that we
+  # are aware if this happens with any other new studies.
   missing_data_samples <- subset(stats, pct_match < 0.5 & n_mismatch == 0 &
                                    grepl("cohort", fields_match))
 
-  # Check: There should be 10 rows, paired between ROSMAP and either NPS-AD or
-  # Diverse Cohorts. If more rows show up after adding a new study, this will
-  # throw an error so we can verify by hand if the new individual matches, and
-  # can alter this statement so it passes again.
+  # Check: There should be 11 rows, with 10 paired between ROSMAP and either
+  # NPS-AD or Diverse Cohorts, and 1 paired between BD2_MSSM and NPS-AD. If more
+  # rows show up after adding a new study, this will throw an error so we can
+  # verify by hand if the new individual matches, and can alter this statement
+  # so it passes again.
   stopifnot(
-    nrow(missing_data_samples) == 10 &&
+    nrow(missing_data_samples) == 11 &&
       all(missing_data_samples$study1 %in%
-            c(studies$diverse_cohorts$name, studies$nps_ad$name)) &&
-      all(missing_data_samples$study2 == studies$rosmap$name)
+            c(studies$bd2_mssm$name, studies$diverse_cohorts$name, studies$nps_ad$name)) &&
+      sum(missing_data_samples$study2 == studies$rosmap$name) == 10 &&
+      sum(missing_data_samples$study1 == studies$bd2_mssm$name) == 1
   )
 
   # Special case: Until de-duplication, NPS-AD data might have up to 1 mismatch
