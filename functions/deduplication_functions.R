@@ -131,6 +131,16 @@ deduplicate_studies <- function(df_list,
             meta_tmp <- deduplicate_ageDeath_pmi(meta_tmp, leftover, col_name, report_string)
           } else if (col_name == "cohort") {
             meta_tmp <- deduplicate_cohort(meta_tmp, leftover, col_name, spec, report_string)
+          } else if (col_name %in% c("amyCerad", "Braak", "amyAny", "bScore") &&
+                     "NPS-AD" %in% meta_tmp$study) {
+            # Special case: copy MSBB or DivCo amyCerad or Braak values over to NPS-AD
+            new_value <- subset(meta_tmp, study %in% c("MSBB", "AMP-AD_DiverseCohorts")) |>
+              pull(all_of(col_name)) |> unique()
+            if (length(new_value) == 1) {
+              meta_tmp[meta_tmp$study == "NPS-AD", col_name] <- new_value
+            } else {
+              cat(report_string)
+            }
           } else {
             # Column is something else that we don't have specific handling for,
             # so we report it but don't try to resolve duplication.
